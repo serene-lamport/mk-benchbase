@@ -63,15 +63,26 @@ class YCSBLoader extends Loader<YCSBBenchmark> {
 
   private void loadRecords(Connection conn, int start, int stop) throws SQLException {
     Table catalog_tbl = benchmark.getCatalog().getTable("USERTABLE");
+    LOG.info("Loading {} records into {}", stop - start, catalog_tbl.getName());
 
     String sql = SQLUtil.getInsertSQL(catalog_tbl, this.getDatabaseType());
+    LOG.info("SQL Insert Statement: {}", sql);
     try (PreparedStatement stmt = conn.prepareStatement(sql)) {
       long total = 0;
       int batch = 0;
       for (int i = start; i < stop; i++) {
         stmt.setInt(1, i);
+
+        // seqscan key is an integer in [1, 100]
+        int seqscan_key = this.rng().nextInt(100) + 1; // 1 to 100 inclusive
+
+        stmt.setInt(2, seqscan_key);
         for (int j = 0; j < YCSBConstants.NUM_FIELDS; j++) {
-          stmt.setString(j + 2, TextGenerator.randomStr(rng(), benchmark.fieldSize));
+          // Old, when there was id + NUM_FIELDS fields
+          // stmt.setString(j + 2, TextGenerator.randomStr(rng(), benchmark.fieldSize));
+
+          // New, with id + seqscan_key + NUM_FIELDS fields
+          stmt.setString(j + 3, TextGenerator.randomStr(rng(), benchmark.fieldSize));
         }
         stmt.addBatch();
         total++;

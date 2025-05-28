@@ -32,12 +32,13 @@ public class UpdateRecord extends Procedure {
           "UPDATE "
               + TABLE_NAME
               + " SET FIELD1=?,FIELD2=?,FIELD3=?,FIELD4=?,FIELD5=?,"
-              + "FIELD6=?,FIELD7=?,FIELD8=?,FIELD9=?,FIELD10=? WHERE YCSB_KEY=?");
+              + "FIELD6=?,FIELD7=?,FIELD8=?,FIELD9=?,FIELD10=?,SEQSCAN_KEY=? WHERE YCSB_KEY=?");
 
   public void run(Connection conn, int keyname, String[] vals) throws SQLException {
     try (PreparedStatement stmt = this.getPreparedStatement(conn, updateAllStmt)) {
 
-      stmt.setInt(11, keyname);
+      stmt.setInt(11, 1 + (keyname % 100));
+      stmt.setInt(12, keyname);
       for (int i = 0; i < vals.length; i++) {
         stmt.setString(i + 1, vals[i]);
       }

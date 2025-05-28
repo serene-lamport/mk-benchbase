@@ -4,6 +4,7 @@ IF OBJECT_ID('USERTABLE') IS NOT NULL DROP table USERTABLE;
 
 CREATE TABLE USERTABLE(
   YCSB_KEY INT PRIMARY KEY,
+  SEQSCAN_KEY INT, -- To add sequential scans to ycsb by clustering the table based on this column and adding an index of type brin
   FIELD1 TEXT, 
   FIELD2 TEXT,
   FIELD3 TEXT, 

@@ -1,5 +1,6 @@
 CREATE TABLE usertable (
     ycsb_key INT64,
+    seqscan_key INT64, -- To add sequential scans to ycsb by clustering the table based on this column and adding an index of type brin
     field1   STRING(100),
     field2   STRING(100),
     field3   STRING(100),

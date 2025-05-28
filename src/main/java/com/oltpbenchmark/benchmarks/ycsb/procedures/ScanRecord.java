@@ -42,7 +42,7 @@ public class ScanRecord extends Procedure {
         while (r.next()) {
           String[] data = new String[YCSBConstants.NUM_FIELDS];
           for (int i = 0; i < data.length; i++) {
-            data[i] = r.getString(i + 1);
+            data[i] = r.getString(i + 2);
           }
           results.add(data);
         }

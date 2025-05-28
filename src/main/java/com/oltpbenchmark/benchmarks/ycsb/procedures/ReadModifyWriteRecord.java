@@ -35,7 +35,7 @@ public class ReadModifyWriteRecord extends Procedure {
           "UPDATE "
               + TABLE_NAME
               + " SET FIELD1=?,FIELD2=?,FIELD3=?,FIELD4=?,FIELD5=?,"
-              + "FIELD6=?,FIELD7=?,FIELD8=?,FIELD9=?,FIELD10=? WHERE YCSB_KEY=?");
+              + "FIELD6=?,FIELD7=?,FIELD8=?,FIELD9=?,FIELD10=?,SEQSCAN_KEY=? WHERE YCSB_KEY=?");
 
   // FIXME: The value in ysqb is a byteiterator
   public void run(Connection conn, int keyname, String[] fields, String[] results)
@@ -55,7 +55,8 @@ public class ReadModifyWriteRecord extends Procedure {
 
     // Update that mofo
     try (PreparedStatement stmt = this.getPreparedStatement(conn, updateAllStmt)) {
-      stmt.setInt(11, keyname);
+      stmt.setInt(11, 1 + (keyname % 100)); // seqscan_key
+      stmt.setInt(12, keyname);
 
       for (int i = 0; i < fields.length; i++) {
         stmt.setString(i + 1, fields[i]);

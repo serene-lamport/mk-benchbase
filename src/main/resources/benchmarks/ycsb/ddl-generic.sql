@@ -1,6 +1,7 @@
 DROP TABLE IF EXISTS USERTABLE;
 CREATE TABLE USERTABLE (
     YCSB_KEY INT PRIMARY KEY,
+	SEQSCAN_KEY INT, -- To add sequential scans to ycsb by clustering the table based on this column and adding an index of type brin
     FIELD1 VARCHAR(100),
   	FIELD2 VARCHAR(100),
   	FIELD3 VARCHAR(100),

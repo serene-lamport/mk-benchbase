@@ -5,6 +5,7 @@ BEGIN EXECUTE immediate 'DROP TABLE USERTABLE'; EXCEPTION WHEN others THEN IF SQ
 
 CREATE TABLE USERTABLE(
   YCSB_KEY INT NOT NULL,
+  SEQSCAN_KEY INT, -- To add sequential scans to ycsb by clustering the table based on this column and adding an index of type brin
   FIELD1 VARCHAR2(100), FIELD2 VARCHAR2(100),
   FIELD3 VARCHAR2(100), FIELD4 VARCHAR2(100),
   FIELD5 VARCHAR2(100), FIELD6 VARCHAR2(100),

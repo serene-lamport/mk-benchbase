@@ -37,7 +37,7 @@ public class ReadRecord extends Procedure {
       try (ResultSet r = stmt.executeQuery()) {
         while (r.next()) {
           for (int i = 0; i < YCSBConstants.NUM_FIELDS; i++) {
-            results[i] = r.getString(i + 1);
+            results[i] = r.getString(i + 2);
           }
         }
       }

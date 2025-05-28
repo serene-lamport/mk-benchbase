@@ -27,14 +27,16 @@ import java.sql.SQLException;
 
 public class InsertRecord extends Procedure {
   public final SQLStmt insertStmt =
-      new SQLStmt("INSERT INTO " + TABLE_NAME + " VALUES (?,?,?,?,?,?,?,?,?,?,?)");
+      new SQLStmt("INSERT INTO " + TABLE_NAME + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?)");
 
   // FIXME: The value in ysqb is a byteiterator
   public void run(Connection conn, int keyname, String[] vals) throws SQLException {
     try (PreparedStatement stmt = this.getPreparedStatement(conn, this.insertStmt)) {
       stmt.setInt(1, keyname);
+      int seqscan_key = (keyname % 100) + 1;
+      stmt.setInt(2, seqscan_key);
       for (int i = 0; i < vals.length; i++) {
-        stmt.setString(i + 2, vals[i]);
+        stmt.setString(i + 3, vals[i]);
       }
       stmt.executeUpdate();
     }

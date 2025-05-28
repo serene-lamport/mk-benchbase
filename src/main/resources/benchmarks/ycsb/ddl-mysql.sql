@@ -4,6 +4,7 @@ SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 DROP TABLE IF EXISTS usertable;
 CREATE TABLE usertable (
     ycsb_key int PRIMARY KEY,
+    seqscan_key int, -- To add sequential scans to ycsb by clustering the table based on this column and adding an index of type brin
     field1   varchar(100),
     field2   varchar(100),
     field3   varchar(100),
