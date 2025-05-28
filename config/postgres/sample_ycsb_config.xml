@@ -12,7 +12,7 @@
     <batchsize>1024</batchsize>
 
     <!-- Scalefactor in YCSB is *1000 the number of rows in the USERTABLE-->
-    <scalefactor>1</scalefactor>
+    <scalefactor>1000</scalefactor>
     
     <!-- Optional: Override the field size for each column in USERTABLE -->
     <!-- <fieldSize>8</fieldSize> -->
@@ -21,12 +21,12 @@
     <!-- <skewFactor>0.99</skewFactor> -->
 
     <!-- The workload -->
-    <terminals>1</terminals>
+    <terminals>8</terminals>
     <works>
         <work>
             <time>60</time>
-            <rate>10000</rate>
-            <weights>50,5,15,10,10,10</weights>
+            <rate>unlimited</rate>
+            <weights>50,0,0,0,0,0,50</weights>
         </work>
     </works>
 
@@ -49,6 +49,9 @@
         </transactiontype>
         <transactiontype>
             <name>ReadModifyWriteRecord</name>
+        </transactiontype>
+        <transactiontype>
+            <name>SeqScanRecord</name>
         </transactiontype>
     </transactiontypes>
 </parameters>

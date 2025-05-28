@@ -41,6 +41,7 @@ class YCSBWorker extends Worker<YCSBBenchmark> {
   private final ZipfianGenerator readRecord;
   private static CounterGenerator insertRecord;
   private final UniformGenerator randScan;
+  private final UniformGenerator seqScanGenerator;
 
   private final char[] data;
   private final String[] params = new String[YCSBConstants.NUM_FIELDS];
@@ -52,6 +53,7 @@ class YCSBWorker extends Worker<YCSBBenchmark> {
   private final ReadModifyWriteRecord procReadModifyWriteRecord;
   private final InsertRecord procInsertRecord;
   private final DeleteRecord procDeleteRecord;
+  private final SeqScanRecord procSeqScanRecord;
 
   public YCSBWorker(YCSBBenchmark benchmarkModule, int id, int init_record_count) {
     super(benchmarkModule, id);
@@ -60,6 +62,9 @@ class YCSBWorker extends Worker<YCSBBenchmark> {
         new ZipfianGenerator(
             rng(), init_record_count, benchmarkModule.skewFactor); // pool for read keys
     this.randScan = new UniformGenerator(1, YCSBConstants.MAX_SCAN);
+    this.seqScanGenerator =
+        new UniformGenerator(
+            YCSBConstants.MIN_SEQSCAN, YCSBConstants.MAX_SEQSCAN); // pool for scan keys
 
     synchronized (YCSBWorker.class) {
       // We must know where to start inserting
@@ -77,6 +82,7 @@ class YCSBWorker extends Worker<YCSBBenchmark> {
     this.procReadModifyWriteRecord = this.getProcedure(ReadModifyWriteRecord.class);
     this.procInsertRecord = this.getProcedure(InsertRecord.class);
     this.procDeleteRecord = this.getProcedure(DeleteRecord.class);
+    this.procSeqScanRecord = this.getProcedure(SeqScanRecord.class);
   }
 
   @Override
@@ -96,6 +102,8 @@ class YCSBWorker extends Worker<YCSBBenchmark> {
       scanRecord(conn);
     } else if (procClass.equals(UpdateRecord.class)) {
       updateRecord(conn);
+    } else if (procClass.equals(SeqScanRecord.class)) {
+      seqScanRecord(conn);
     }
     return (TransactionStatus.SUCCESS);
   }
@@ -115,6 +123,12 @@ class YCSBWorker extends Worker<YCSBBenchmark> {
   private void readRecord(Connection conn) throws SQLException {
     int keyname = readRecord.nextInt();
     this.procReadRecord.run(conn, keyname, this.results);
+  }
+
+  private void seqScanRecord(Connection conn) throws SQLException {
+    int scanLength = seqScanGenerator.nextInt();
+    int keyname = readRecord.nextInt();
+    this.procSeqScanRecord.run(conn, keyname, scanLength, this.results);
   }
 
   private void readModifyWriteRecord(Connection conn) throws SQLException {
