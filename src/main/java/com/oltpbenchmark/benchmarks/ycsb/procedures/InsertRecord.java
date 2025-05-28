@@ -33,7 +33,7 @@ public class InsertRecord extends Procedure {
   public void run(Connection conn, int keyname, String[] vals) throws SQLException {
     try (PreparedStatement stmt = this.getPreparedStatement(conn, this.insertStmt)) {
       stmt.setInt(1, keyname);
-      int seqscan_key = (keyname % 100) + 1;
+      int seqscan_key = (keyname % 1000) + 1;
       stmt.setInt(2, seqscan_key);
       for (int i = 0; i < vals.length; i++) {
         stmt.setString(i + 3, vals[i]);

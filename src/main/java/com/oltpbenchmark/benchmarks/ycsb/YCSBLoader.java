@@ -74,7 +74,7 @@ class YCSBLoader extends Loader<YCSBBenchmark> {
         stmt.setInt(1, i);
 
         // seqscan key is an integer in [1, 100]
-        int seqscan_key = this.rng().nextInt(100) + 1; // 1 to 100 inclusive
+        int seqscan_key = this.rng().nextInt(1000) + 1; // 1 to 1000 inclusive
 
         stmt.setInt(2, seqscan_key);
         for (int j = 0; j < YCSBConstants.NUM_FIELDS; j++) {

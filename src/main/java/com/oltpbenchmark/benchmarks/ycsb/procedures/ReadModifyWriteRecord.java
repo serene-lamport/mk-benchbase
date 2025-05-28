@@ -55,7 +55,7 @@ public class ReadModifyWriteRecord extends Procedure {
 
     // Update that mofo
     try (PreparedStatement stmt = this.getPreparedStatement(conn, updateAllStmt)) {
-      stmt.setInt(11, 1 + (keyname % 100)); // seqscan_key
+      stmt.setInt(11, 1 + (keyname % 1000)); // seqscan_key
       stmt.setInt(12, keyname);
 
       for (int i = 0; i < fields.length; i++) {
