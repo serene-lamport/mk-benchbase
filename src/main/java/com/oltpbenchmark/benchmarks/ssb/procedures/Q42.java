@@ -41,7 +41,7 @@ public class Q42 extends GenericQuery {
     while (region1.equals(region2)) {
       region2 = SSBUtil.choice(SSBConstants.REGIONS, rand);
     }
-    
+
     int year1 = SSBUtil.generateRandomYear(rand);
     int year2 = SSBUtil.generateRandomYear(rand);
     while (year1 == year2) {

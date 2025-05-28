@@ -44,9 +44,8 @@ public class Q33 extends GenericQuery {
       city2 = SSBUtil.generateRandomCityInNation(nation, rand);
     }
 
-
     String nation2 = SSBUtil.choice(SSBConstants.NATIONS, rand);
-    // OK to be equal to nation 
+    // OK to be equal to nation
     String city3 = SSBUtil.generateRandomCityInNation(nation2, rand);
     String city4 = SSBUtil.generateRandomCityInNation(nation2, rand);
     while (city3.equals(city4)) {
