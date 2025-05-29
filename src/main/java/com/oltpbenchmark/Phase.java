@@ -42,6 +42,7 @@ public class Phase {
   private final boolean timed;
   private final List<Double> weights;
   private final int weightCount;
+  private final List<Integer> counts;
   private final int activeTerminals;
   private int nextSerial;
 
@@ -52,6 +53,7 @@ public class Phase {
       int wt,
       double r,
       List<Double> weights,
+      List<Integer> counts,
       boolean rateLimited,
       boolean disabled,
       boolean serial,
@@ -64,7 +66,9 @@ public class Phase {
     this.warmupTime = wt;
     this.rate = r;
     this.weights = weights;
-    this.weightCount = this.weights.size();
+    this.weightCount = weights != null ? weights.size() : counts.size();
+    this.counts = counts;
+    
     this.rateLimited = rateLimited;
     this.disabled = disabled;
     this.serial = serial;
@@ -92,6 +96,10 @@ public class Phase {
 
   public boolean isLatencyRun() {
     return !timed && serial;
+  }
+
+  public boolean isWorkloadRun() {
+    return counts != null;
   }
 
   public boolean isThroughputRun() {
@@ -132,6 +140,10 @@ public class Phase {
 
   public List<Double> getWeights() {
     return (this.weights);
+  }
+
+  public List<Integer> getCounts() {
+    return (this.counts);
   }
 
   /**
@@ -220,7 +232,14 @@ public class Phase {
       inner.add("[WarmupTime=" + warmupTime + "]");
       inner.add("[Rate=" + (isRateLimited() ? rate : "unlimited") + "]");
       inner.add("[Arrival=" + arrival + "]");
-      inner.add("[Ratios=" + getWeights() + "]");
+
+      if (getWeights() != null) {
+        inner.add("[Ratios=" + getWeights() + "]");
+      }
+      if (getCounts() != null) {
+        inner.add("[Counts=" + getCounts() + "]");
+      }
+      
       inner.add("[ActiveWorkers=" + getActiveTerminals() + "]");
     }
 

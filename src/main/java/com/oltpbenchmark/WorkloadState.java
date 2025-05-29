@@ -25,7 +25,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This class is used to share a state among the workers of a single workload. Worker use it to ask
+ * This class is used to share a state among the workers of a single workload.
+ * Worker use it to ask
  * for work and as interface to the global BenchmarkState
  *
  * @author alendit
@@ -43,6 +44,8 @@ public class WorkloadState {
 
   @SuppressWarnings("unused") // never read
   private int workersWorking = 0;
+
+  private int workersInWorkload = 0;
 
   private int workerNeedSleep;
 
@@ -157,6 +160,17 @@ public class WorkloadState {
     }
   }
 
+  public boolean startWork() {
+    synchronized (this) {
+      if (getGlobalState() == State.EXIT || getGlobalState() == State.DONE) {
+        return false;
+      } else {
+        ++workersWorking;
+        return true;
+      }
+    }
+  }
+
   public void finishedWork() {
     synchronized (this) {
       --workersWorking;
@@ -215,6 +229,12 @@ public class WorkloadState {
         // Phase running---activate the appropriate # of terminals
         {
           workerNeedSleep = this.num_terminals - this.currentPhase.getActiveTerminals();
+
+          // track how many workers need to finish the phase for workload runs
+          if (this.currentPhase.isWorkloadRun()) {
+            this.workersInWorkload = this.currentPhase.getActiveTerminals();
+          }
+
         }
       }
 
@@ -254,4 +274,32 @@ public class WorkloadState {
   public long getTestStartNs() {
     return benchmarkState.getTestStartNs();
   }
+
+  public void workloadPhaseDone(Phase curPhase) {
+    synchronized (this) {
+      // If already on the next phase, do nothing
+      // (should be impossible)
+      if (this.currentPhase != curPhase)
+        return;
+
+      // Record that the worker finished the phase
+      --this.workersInWorkload;
+
+      if (this.workersInWorkload > 0) {
+        // Sleep until all other workers are done
+        while (this.workersInWorkload > 0 && this.currentPhase == curPhase) {
+          try {
+            this.wait();
+          } catch (InterruptedException e) {
+            LOG.error(e.getMessage(), e);
+          }
+        }
+      } else {
+        // We were the last one: wake everyone else up
+        this.benchmarkState.signalWorkloadComplete();
+        this.notifyAll();
+      }
+    }
+  }
+
 }

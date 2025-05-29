@@ -33,7 +33,8 @@ public final class BenchmarkState {
   private volatile State state = State.WARMUP;
 
   /**
-   * @param numThreads number of threads involved in the test: including the master thread.
+   * @param numThreads number of threads involved in the test: including the
+   *                   master thread.
    */
   public BenchmarkState(int numThreads) {
     startBarrier = new CountDownLatch(numThreads);
@@ -54,7 +55,9 @@ public final class BenchmarkState {
     }
   }
 
-  /** Wait for all threads to call this. Returns once all the threads have entered. */
+  /**
+   * Wait for all threads to call this. Returns once all the threads have entered.
+   */
   public void blockForStart() {
 
     startBarrier.countDown();
@@ -79,6 +82,10 @@ public final class BenchmarkState {
 
   public void signalLatencyComplete() {
     state = State.LATENCY_COMPLETE;
+  }
+
+  public void signalWorkloadComplete() {
+    state = State.WORKLOAD_COMPLETE;
   }
 
   public void ackLatencyComplete() {

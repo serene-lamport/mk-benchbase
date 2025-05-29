@@ -64,9 +64,9 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
   }
 
   private void createWorkerThreads() {
-
+    int i = 0;
     for (Worker<?> worker : workers) {
-      worker.initializeState();
+      worker.initializeState(i++);
       Thread thread = new Thread(worker);
       thread.setUncaughtExceptionHandler(this);
       thread.start();
@@ -94,7 +94,8 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
       // to terminate... hands otherwise
 
       /*
-       * // CARLO: Maybe we might want to do this to kill threads that are hanging... if
+       * // CARLO: Maybe we might want to do this to kill threads that are hanging...
+       * if
        * (workerThreads.get(i).isAlive()) { workerThreads.get(i).kill(); try {
        * workerThreads.get(i).join(); } catch (InterruptedException e) { } }
        */
@@ -142,6 +143,11 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
       synchronized (testState) {
         testState.startColdQuery();
       }
+    } else if (phase != null && phase.isWorkloadRun()) {
+      synchronized (testState) {
+        // No warmup phase for workload runs, but also no cold query
+        testState.startMeasure();
+      }
     }
 
     long startTs = System.currentTimeMillis();
@@ -163,9 +169,8 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
 
     // Initialize the Monitor
     if (this.monitorInfo.getMonitoringInterval() > 0) {
-      this.monitor =
-          MonitorGen.getMonitor(
-              this.monitorInfo, this.testState, this.workers, this.workConfs.get(0));
+      this.monitor = MonitorGen.getMonitor(
+          this.monitorInfo, this.testState, this.workers, this.workConfs.get(0));
       this.monitor.start();
     }
 
@@ -212,6 +217,10 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
         // state to mark completion
         {
           phaseComplete = testState.getState() == State.LATENCY_COMPLETE;
+        } else if (phase.isWorkloadRun()) {
+          // new "workload run": only complete once all workers are complete and state is
+          // set accordingly
+          phaseComplete = testState.getState() == State.WORKLOAD_COMPLETE;
         } else {
           phaseComplete = testState.getState() == State.MEASURE && (start + delta <= now);
         }
@@ -249,6 +258,8 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
                 if (phase.isLatencyRun()) {
                   phase.resetSerial();
                   testState.startColdQuery();
+                } else if (phase.isWorkloadRun()) {
+                  testState.startMeasure();
                 }
                 LOG.info(phase.currentPhaseString());
                 if (phase.getRate() < lowestRate) {
@@ -309,7 +320,8 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
       }
     }
 
-    // Stop the monitoring thread separately from cleanup all the workers so we can ignore errors
+    // Stop the monitoring thread separately from cleanup all the workers so we can
+    // ignore errors
     // from these threads (including possible SQLExceptions), but not the others.
     try {
       if (this.monitor != null) {
@@ -340,16 +352,15 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
       }
       DistributionStatistics stats = DistributionStatistics.computeStatistics(latencies);
 
-      Results results =
-          new Results(
-              // If any errors were thrown during the execution, proprogate that fact to the
-              // final Results state so we can exit non-zero *after* we output the results.
-              errorsThrown ? State.ERROR : testState.getState(),
-              startTs,
-              measureEnd - start,
-              requests,
-              stats,
-              samples);
+      Results results = new Results(
+          // If any errors were thrown during the execution, proprogate that fact to the
+          // final Results state so we can exit non-zero *after* we output the results.
+          errorsThrown ? State.ERROR : testState.getState(),
+          startTs,
+          measureEnd - start,
+          requests,
+          stats,
+          samples);
 
       // Compute transaction histogram
       Set<TransactionType> txnTypes = new HashSet<>();
@@ -420,7 +431,7 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
     /**
      * @param samples
      * @param windowSizeSeconds
-     * @param transactionType Allows to filter transactions by type
+     * @param transactionType   Allows to filter transactions by type
      */
     public TimeBucketIterable(
         Iterable<Sample> samples, int windowSizeSeconds, TransactionType transactionType) {
@@ -448,7 +459,7 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
     /**
      * @param samples
      * @param windowSizeSeconds
-     * @param txType Allows to filter transactions by type
+     * @param txType            Allows to filter transactions by type
      */
     public TimeBucketIterator(
         Iterator<LatencyRecord.Sample> samples, int windowSizeSeconds, TransactionType txType) {

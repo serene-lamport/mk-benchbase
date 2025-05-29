@@ -38,6 +38,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
+import java.util.ArrayList; 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,6 +52,7 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
   private WorkloadState workloadState;
   private LatencyRecord latencies;
   private final Statement currStatement;
+  private int workerIdx = 0;
 
   // Interval requests used by the monitor
   private final AtomicInteger intervalRequests = new AtomicInteger(0);
@@ -208,6 +211,10 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
     // wait for start
     workloadState.blockForStart();
 
+    Phase curPhase = null;
+    List<Integer> workloadQueries = null;
+    int workloadIdx = 0; 
+
     while (true) {
 
       // PART 1: Init and check if done
@@ -231,15 +238,76 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
       // Sleep if there's nothing to do.
       workloadState.stayAwake();
 
+      SubmittedProcedure pieceOfWork = null;
+
       Phase prePhase = workloadState.getCurrentPhase();
       if (prePhase == null) {
         continue;
       }
 
-      // Grab some work and update the state, in case it changed while we
-      // waited.
 
-      SubmittedProcedure pieceOfWork = workloadState.fetchWork();
+      if (prePhase.isWorkloadRun()) {
+
+        // Starting new phase of workload run! set everything up in this thread...
+        if (prePhase != curPhase) {
+          curPhase = prePhase;
+          List<Integer> counts = prePhase.getCounts();
+          int totalCount = counts.stream().mapToInt(x -> x).sum();
+
+          workloadIdx = 0;
+
+          // at the start: compute the list of queries to run and randomize the order
+          workloadQueries = new ArrayList<>(totalCount);
+
+          for (int j = 0; j < counts.size(); ++j) {
+              int c = counts.get(j);
+
+              for ( ; c > 0; --c) {
+                  workloadQueries.add(j + 1);
+              }
+          }
+
+          // "rng" is threadlocal and fixed-seed, so would have the same results in each worker.
+          // add the worker index so workers get different orders, and use this to seed a new local RNG
+          Random r = new Random(rng().nextInt() * this.workerIdx);
+          for (int i = 0; i < workloadQueries.size(); ++i) {
+              int j = r.nextInt(i, workloadQueries.size());
+
+              int temp = workloadQueries.get(j);
+              workloadQueries.set(j, workloadQueries.get(i));
+              workloadQueries.set(i, temp);
+          }
+
+          LOG.info("Worker " + this.workerIdx + " query order: " + workloadQueries);
+      }
+
+      // Continue the workload run
+      if (workloadIdx >= workloadQueries.size()) {
+          // Workload run is complete!
+
+          // Signal this worker is done with the workload. Wait for everyone else to finish too.
+          workloadState.workloadPhaseDone(curPhase);
+
+          // Go back to start of loop -- no work to do
+          continue;
+      } else if (workloadState.startWork()) {
+          // Do the next query in the already-chosen order
+          pieceOfWork = new SubmittedProcedure(workloadQueries.get(workloadIdx));
+          ++workloadIdx;
+      } else {
+          // I think this is only possible if the system is shutting down (e.g. CTRL+C during the run)
+          // Should be the same as if fetchWork doesn't have work (returns null)
+          pieceOfWork = null;
+      }
+
+
+      } else {
+        // Grab some work and update the state, in case it changed while we
+        // waited.
+        pieceOfWork = workloadState.fetchWork();
+
+      }
+
 
       prePhase = workloadState.getCurrentPhase();
       if (prePhase == null) {
@@ -782,8 +850,9 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
     }
   }
 
-  public void initializeState() {
+  public void initializeState(int i) {
     this.workloadState = this.configuration.getWorkloadState();
+    this.workerIdx = i;
   }
 
   protected long getPreExecutionWaitInMillis(TransactionType type) {
