@@ -351,7 +351,7 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
       Collections.sort(samples);
 
       // Compute stats on all the latencies
-      int[] latencies = new int[samples.size()];
+      long[] latencies = new long[samples.size()];
       for (int i = 0; i < samples.size(); ++i) {
         latencies[i] = samples.get(i).getLatencyMicrosecond();
       }
@@ -485,7 +485,7 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
     private void calculateNext() {
 
       // Collect all samples in the time window
-      ArrayList<Integer> latencies = new ArrayList<>();
+      ArrayList<Long> latencies = new ArrayList<>();
       long endNanoseconds = nextStartNanosecond + (windowSizeSeconds * 1000000000L);
       while (sample != null && sample.getStartNanosecond() < endNanoseconds) {
 
@@ -508,7 +508,7 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
 
       nextStartNanosecond = endNanoseconds;
 
-      int[] l = new int[latencies.size()];
+      long[] l = new long[latencies.size()];
       for (int i = 0; i < l.length; ++i) {
         l[i] = latencies.get(i);
       }
