@@ -53,7 +53,7 @@ public class LatencyRecord implements Iterable<LatencyRecord.Sample> {
 
     long startOffsetNanosecond = (startNanosecond - lastNanosecond + 500);
 
-    long latencyMicroseconds = (long) ((endNanosecond - startNanosecond + 500) / 1000);
+    long latencyMicroseconds = ((endNanosecond - startNanosecond + 500) / 1000);
 
     chunk[nextIndex] =
         new Sample(transType, startOffsetNanosecond, latencyMicroseconds, workerId, phaseId);

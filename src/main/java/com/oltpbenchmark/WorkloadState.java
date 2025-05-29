@@ -25,8 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This class is used to share a state among the workers of a single workload.
- * Worker use it to ask
+ * This class is used to share a state among the workers of a single workload. Worker use it to ask
  * for work and as interface to the global BenchmarkState
  *
  * @author alendit
@@ -234,7 +233,6 @@ public class WorkloadState {
           if (this.currentPhase.isWorkloadRun()) {
             this.workersInWorkload = this.currentPhase.getActiveTerminals();
           }
-
         }
       }
 
@@ -279,8 +277,7 @@ public class WorkloadState {
     synchronized (this) {
       // If already on the next phase, do nothing
       // (should be impossible)
-      if (this.currentPhase != curPhase)
-        return;
+      if (this.currentPhase != curPhase) return;
 
       // Record that the worker finished the phase
       --this.workersInWorkload;
@@ -301,5 +298,4 @@ public class WorkloadState {
       }
     }
   }
-
 }

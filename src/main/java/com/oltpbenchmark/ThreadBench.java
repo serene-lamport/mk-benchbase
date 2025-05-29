@@ -169,8 +169,9 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
 
     // Initialize the Monitor
     if (this.monitorInfo.getMonitoringInterval() > 0) {
-      this.monitor = MonitorGen.getMonitor(
-          this.monitorInfo, this.testState, this.workers, this.workConfs.get(0));
+      this.monitor =
+          MonitorGen.getMonitor(
+              this.monitorInfo, this.testState, this.workers, this.workConfs.get(0));
       this.monitor.start();
     }
 
@@ -357,15 +358,17 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
       }
       DistributionStatistics stats = DistributionStatistics.computeStatistics(latencies);
 
-      Results results = new Results(
-          // If any errors were thrown during the execution, proprogate that fact to the
-          // final Results state so we can exit non-zero *after* we output the results.
-          errorsThrown ? State.ERROR : testState.getState(),
-          startTs,
-          measureEnd - start,
-          requests,
-          stats,
-          samples, workerTimes);
+      Results results =
+          new Results(
+              // If any errors were thrown during the execution, proprogate that fact to the
+              // final Results state so we can exit non-zero *after* we output the results.
+              errorsThrown ? State.ERROR : testState.getState(),
+              startTs,
+              measureEnd - start,
+              requests,
+              stats,
+              samples,
+              workerTimes);
 
       // Compute transaction histogram
       Set<TransactionType> txnTypes = new HashSet<>();
@@ -436,7 +439,7 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
     /**
      * @param samples
      * @param windowSizeSeconds
-     * @param transactionType   Allows to filter transactions by type
+     * @param transactionType Allows to filter transactions by type
      */
     public TimeBucketIterable(
         Iterable<Sample> samples, int windowSizeSeconds, TransactionType transactionType) {
@@ -464,7 +467,7 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
     /**
      * @param samples
      * @param windowSizeSeconds
-     * @param txType            Allows to filter transactions by type
+     * @param txType Allows to filter transactions by type
      */
     public TimeBucketIterator(
         Iterator<LatencyRecord.Sample> samples, int windowSizeSeconds, TransactionType txType) {

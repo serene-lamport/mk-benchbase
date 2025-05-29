@@ -60,7 +60,8 @@ public class Phase {
       boolean serial,
       boolean timed,
       int activeTerminals,
-      Arrival a, boolean randomize) {
+      Arrival a,
+      boolean randomize) {
     this.benchmarkName = benchmarkName;
     this.id = id;
     this.time = t;
@@ -69,7 +70,7 @@ public class Phase {
     this.weights = weights;
     this.weightCount = weights != null ? weights.size() : counts.size();
     this.counts = counts;
-    
+
     this.rateLimited = rateLimited;
     this.disabled = disabled;
     this.serial = serial;
@@ -241,7 +242,7 @@ public class Phase {
       if (getCounts() != null) {
         inner.add("[Counts=" + getCounts() + "]");
       }
-      
+
       inner.add("[ActiveWorkers=" + getActiveTerminals() + "]");
     }
 

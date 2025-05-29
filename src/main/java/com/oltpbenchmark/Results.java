@@ -48,7 +48,8 @@ public final class Results {
       long elapsedNanoseconds,
       int measuredRequests,
       DistributionStatistics distributionStatistics,
-      final List<LatencyRecord.Sample> latencySamples, List<Long> workerTimes) {
+      final List<LatencyRecord.Sample> latencySamples,
+      List<Long> workerTimes) {
     this.startTimestampMs = startTimestampMs;
     this.nanoseconds = elapsedNanoseconds;
     this.measuredRequests = measuredRequests;

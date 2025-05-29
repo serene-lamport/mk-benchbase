@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.stream.Collectors;
 import org.apache.commons.cli.*;
 import org.apache.commons.collections4.map.ListOrderedMap;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
@@ -42,7 +43,6 @@ import org.apache.commons.configuration2.tree.xpath.XPathExpressionEngine;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.util.stream.Collectors;
 
 public class DBWorkload {
   private static final Logger LOG = LoggerFactory.getLogger(DBWorkload.class);
@@ -154,7 +154,8 @@ public class DBWorkload {
         wrkld.setLoaderThreads(loaderThreads);
       }
 
-      String isolationMode = xmlConfig.getString("isolation[not(@bench)]", "TRANSACTION_SERIALIZABLE");
+      String isolationMode =
+          xmlConfig.getString("isolation[not(@bench)]", "TRANSACTION_SERIALIZABLE");
       wrkld.setIsolationMode(xmlConfig.getString("isolation" + pluginTest, isolationMode));
       wrkld.setScaleFactor(xmlConfig.getDouble("scalefactor", 1.0));
       wrkld.setDataDir(xmlConfig.getString("datadir", "."));
@@ -186,8 +187,9 @@ public class DBWorkload {
         throw new ParseException("Plugin " + plugin + " is undefined in config/plugin.xml");
       }
 
-      BenchmarkModule bench = ClassUtil.newInstance(
-          classname, new Object[] { wrkld }, new Class<?>[] { WorkloadConfiguration.class });
+      BenchmarkModule bench =
+          ClassUtil.newInstance(
+              classname, new Object[] {wrkld}, new Class<?>[] {WorkloadConfiguration.class});
       Map<String, Object> initDebug = new ListOrderedMap<>();
       initDebug.put("Benchmark", String.format("%s {%s}", plugin.toUpperCase(), classname));
       initDebug.put("Configuration", configFile);
@@ -214,11 +216,13 @@ public class DBWorkload {
       // ----------------------------------------------------------------
       // LOAD TRANSACTION DESCRIPTIONS
       // ----------------------------------------------------------------
-      int numTxnTypes = xmlConfig.configurationsAt("transactiontypes" + pluginTest + "/transactiontype").size();
+      int numTxnTypes =
+          xmlConfig.configurationsAt("transactiontypes" + pluginTest + "/transactiontype").size();
       if (numTxnTypes == 0 && targetList.length == 1) {
         // if it is a single workload run, <transactiontypes /> w/o attribute is used
         pluginTest = "[not(@bench)]";
-        numTxnTypes = xmlConfig.configurationsAt("transactiontypes" + pluginTest + "/transactiontype").size();
+        numTxnTypes =
+            xmlConfig.configurationsAt("transactiontypes" + pluginTest + "/transactiontype").size();
       }
 
       List<TransactionType> ttypes = new ArrayList<>();
@@ -250,8 +254,9 @@ public class DBWorkload {
         }
         initDebug.put("After Load Script", bench.getAfterLoadScriptPath());
 
-        TransactionType tmpType = bench.initTransactionType(
-            txnName, txnId + txnIdOffset, preExecutionWait, postExecutionWait);
+        TransactionType tmpType =
+            bench.initTransactionType(
+                txnName, txnId + txnIdOffset, preExecutionWait, postExecutionWait);
 
         // Keep a reference for filtering
         activeTXTypes.add(tmpType);
@@ -268,9 +273,10 @@ public class DBWorkload {
 
       // Read in the groupings of transactions (if any) defined for this
       // benchmark
-      int numGroupings = xmlConfig
-          .configurationsAt("transactiontypes" + pluginTest + "/groupings/grouping")
-          .size();
+      int numGroupings =
+          xmlConfig
+              .configurationsAt("transactiontypes" + pluginTest + "/groupings/grouping")
+              .size();
       LOG.debug("Num groupings: {}", numGroupings);
       for (int i = 1; i < numGroupings + 1; i++) {
         String key = "transactiontypes" + pluginTest + "/groupings/grouping[" + i + "]";
@@ -292,7 +298,8 @@ public class DBWorkload {
 
         // Get the weights for this grouping and make sure that there
         // is an appropriate number of them.
-        List<String> groupingWeights = Arrays.asList(xmlConfig.getString(key + "/weights").split("\\s*,\\s*"));
+        List<String> groupingWeights =
+            Arrays.asList(xmlConfig.getString(key + "/weights").split("\\s*,\\s*"));
         if (groupingWeights.size() != numTxnTypes) {
           LOG.error(
               String.format(
@@ -314,7 +321,8 @@ public class DBWorkload {
 
       int size = xmlConfig.configurationsAt("/works/work").size();
       for (int i = 1; i < size + 1; i++) {
-        final HierarchicalConfiguration<ImmutableNode> work = xmlConfig.configurationAt("works/work[" + i + "]");
+        final HierarchicalConfiguration<ImmutableNode> work =
+            xmlConfig.configurationAt("works/work[" + i + "]");
         List<String> weight_strings = null;
         List<String> count_strings = null;
 
@@ -322,13 +330,15 @@ public class DBWorkload {
         // attributed workload
         if (targetList.length > 1 || work.containsKey("weights[@bench]")) {
           if (work.containsKey("weights[@bench]")) {
-            weight_strings = Arrays.asList(work.getString("weights" + pluginTest).split("\\s*,\\s*"));
+            weight_strings =
+                Arrays.asList(work.getString("weights" + pluginTest).split("\\s*,\\s*"));
           } else {
             count_strings = Arrays.asList(work.getString("counts" + pluginTest).split("\\s*,\\s*"));
           }
         } else {
           if (work.containsKey("weights")) {
-            weight_strings = Arrays.asList(work.getString("weights[not(@bench)]").split("\\s*,\\s*"));
+            weight_strings =
+                Arrays.asList(work.getString("weights[not(@bench)]").split("\\s*,\\s*"));
           } else {
             count_strings = Arrays.asList(work.getString("counts[not(@bench)]").split("\\s*,\\s*"));
           }
@@ -383,7 +393,8 @@ public class DBWorkload {
 
         // Whether to randomize order or not for "workload" run
         // TODO: unify this with "serial"? not that important...
-        boolean randomize_order = Boolean.parseBoolean(work.getString("randomize", Boolean.TRUE.toString()));
+        boolean randomize_order =
+            Boolean.parseBoolean(work.getString("randomize", Boolean.TRUE.toString()));
 
         int activeTerminals;
         activeTerminals = work.getInt("active_terminals[not(@bench)]", terminals);
@@ -462,7 +473,8 @@ public class DBWorkload {
             serial,
             timed,
             activeTerminals,
-            arrival, randomize_order);
+            arrival,
+            randomize_order);
       }
 
       // CHECKING INPUT PHASES
@@ -480,20 +492,23 @@ public class DBWorkload {
           }
           System.exit(-1);
         } else if (p.isSerial() && p.getCounts() != null) {
-          LOG.error(String.format(
-              "Configuration file is inconsistent, phase %d is serial but defines counts instead of weights.", j));
+          LOG.error(
+              String.format(
+                  "Configuration file is inconsistent, phase %d is serial but defines counts instead of weights.",
+                  j));
           System.exit(-1);
         }
 
         if (p.isTimed() && p.getCounts() != null) {
-          LOG.error(String.format("Run cannot be time limited if counts are specified for phase %d.", j));
+          LOG.error(
+              String.format("Run cannot be time limited if counts are specified for phase %d.", j));
           System.exit(-1);
         }
         if (p.isRateLimited() && p.getCounts() != null) {
-          LOG.error(String.format("Run cannot be rate limited if counts are specified for phase %d.", j));
+          LOG.error(
+              String.format("Run cannot be rate limited if counts are specified for phase %d.", j));
           System.exit(-1);
         }
-
       }
 
       // Generate the dialect map
@@ -505,11 +520,12 @@ public class DBWorkload {
       BenchmarkModule bench = benchList.get(0);
       if (bench.getStatementDialects() != null) {
         LOG.info("Exporting StatementDialects for {}", bench);
-        String xml = bench
-            .getStatementDialects()
-            .export(
-                bench.getWorkloadConfiguration().getDatabaseType(),
-                bench.getProcedures().values());
+        String xml =
+            bench
+                .getStatementDialects()
+                .export(
+                    bench.getWorkloadConfiguration().getDatabaseType(),
+                    bench.getProcedures().values());
         LOG.debug(xml);
         System.exit(0);
       }
@@ -650,14 +666,14 @@ public class DBWorkload {
 
   public static XMLConfiguration buildConfiguration(String filename) throws ConfigurationException {
     Parameters params = new Parameters();
-    FileBasedConfigurationBuilder<XMLConfiguration> builder = new FileBasedConfigurationBuilder<>(
-        XMLConfiguration.class)
-        .configure(
-            params
-                .xml()
-                .setFileName(filename)
-                .setListDelimiterHandler(new DisabledListDelimiterHandler())
-                .setExpressionEngine(new XPathExpressionEngine()));
+    FileBasedConfigurationBuilder<XMLConfiguration> builder =
+        new FileBasedConfigurationBuilder<>(XMLConfiguration.class)
+            .configure(
+                params
+                    .xml()
+                    .setFileName(filename)
+                    .setListDelimiterHandler(new DisabledListDelimiterHandler())
+                    .setExpressionEngine(new XPathExpressionEngine()));
     return builder.getConfiguration();
   }
 
@@ -803,7 +819,6 @@ public class DBWorkload {
     try (PrintStream ps = new PrintStream(FileUtil.joinPath(outputDirectory, workerTimesFile))) {
       rw.writeStreamTimes(ps);
     }
-
   }
 
   private static void runCreator(BenchmarkModule bench) throws SQLException, IOException {
@@ -845,8 +860,7 @@ public class DBWorkload {
   }
 
   /**
-   * Returns true if the given key is in the CommandLine object and is set to
-   * true.
+   * Returns true if the given key is in the CommandLine object and is set to true.
    *
    * @param argsLine
    * @param key
@@ -863,10 +877,8 @@ public class DBWorkload {
   }
 
   /**
-   * Handles the anonymization of specified tables with differential privacy and
-   * automatically
-   * creates an anonymized copy of the table. Adapts templated query file if
-   * sensitive values are
+   * Handles the anonymization of specified tables with differential privacy and automatically
+   * creates an anonymized copy of the table. Adapts templated query file if sensitive values are
    * present
    *
    * @param xmlConfig
@@ -882,8 +894,9 @@ public class DBWorkload {
     LOG.info("Starting the Anonymization process");
     LOG.info(SINGLE_LINE);
     String osCommand = System.getProperty("os.name").startsWith("Windows") ? "python" : "python3";
-    ProcessBuilder processBuilder = new ProcessBuilder(
-        osCommand, "scripts/anonymization/src/anonymizer.py", configFile, templatesPath);
+    ProcessBuilder processBuilder =
+        new ProcessBuilder(
+            osCommand, "scripts/anonymization/src/anonymizer.py", configFile, templatesPath);
     try {
       // Redirect Output stream of the script to get live feedback
       processBuilder.inheritIO();

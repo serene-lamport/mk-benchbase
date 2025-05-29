@@ -24,6 +24,6 @@ public enum State {
   LATENCY_COMPLETE,
   DONE,
   EXIT,
-  ERROR, 
+  ERROR,
   WORKLOAD_COMPLETE
 }

@@ -34,19 +34,20 @@ import java.sql.SQLException;
 import java.sql.SQLRecoverableException;
 import java.sql.Statement;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class Worker<T extends BenchmarkModule> implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(Worker.class);
-  private static final Logger ABORT_LOG = LoggerFactory.getLogger("com.oltpbenchmark.api.ABORT_LOG");
+  private static final Logger ABORT_LOG =
+      LoggerFactory.getLogger("com.oltpbenchmark.api.ABORT_LOG");
 
   private WorkloadState workloadState;
   private LatencyRecord latencies;
@@ -279,23 +280,22 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
           // }
           if (curPhase.randomize_order) {
             // "rng" is threadlocal and fixed-seed, so would have the same results in each worker.
-            // add the worker index so workers get different orders, and use this to seed a new local RNG
+            // add the worker index so workers get different orders, and use this to seed a new
+            // local RNG
             Random r = new Random((long) rng().nextInt() + this.workerIdx);
             for (int i = 0; i < workloadQueries.size(); ++i) {
-                int j = r.nextInt(i, workloadQueries.size());
+              int j = r.nextInt(i, workloadQueries.size());
 
-                int temp = workloadQueries.get(j);
-                workloadQueries.set(j, workloadQueries.get(i));
-                workloadQueries.set(i, temp);
+              int temp = workloadQueries.get(j);
+              workloadQueries.set(j, workloadQueries.get(i));
+              workloadQueries.set(i, temp);
             }
-        }
-
+          }
 
           // LOG.info("Worker " + this.workerIdx + " query order: " + workloadQueries);
           if (LOG.isDebugEnabled()) {
             LOG.debug("Worker " + this.workerIdx + " query order: " + workloadQueries);
           }
-
         }
 
         // Continue the workload run
@@ -323,7 +323,6 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
         // Grab some work and update the state, in case it changed while we
         // waited.
         pieceOfWork = workloadState.fetchWork();
-
       }
 
       prePhase = workloadState.getCurrentPhase();
@@ -340,14 +339,14 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
           LOG.warn("preState is {}? will continue...", preState);
           continue;
         }
-        default -> {
-        }
-        // Do nothing
+        default -> {}
+          // Do nothing
       }
 
       // PART 3: Execute work
 
-      TransactionType transactionType = getTransactionType(pieceOfWork, prePhase, preState, workloadState);
+      TransactionType transactionType =
+          getTransactionType(pieceOfWork, prePhase, preState, workloadState);
 
       if (!transactionType.equals(TransactionType.INVALID)) {
 
@@ -479,11 +478,10 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
   }
 
   /**
-   * Called in a loop in the thread to exercise the system under test. Each
-   * implementing worker
+   * Called in a loop in the thread to exercise the system under test. Each implementing worker
    * should return the TransactionType handle that was executed.
    *
-   * @param databaseType    TODO
+   * @param databaseType TODO
    * @param transactionType TODO
    */
   protected final void doWork(DatabaseType databaseType, TransactionType transactionType) {
@@ -723,17 +721,17 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
         }
       }
     } catch (SQLException ex) {
-      String msg = String.format(
-          "Unexpected SQLException in '%s' when executing '%s' on [%s]",
-          this, transactionType, databaseType.name());
+      String msg =
+          String.format(
+              "Unexpected SQLException in '%s' when executing '%s' on [%s]",
+              this, transactionType, databaseType.name());
 
       throw new RuntimeException(msg, ex);
     }
   }
 
   /**
-   * Checks to see if the exception indicates that the current connection is
-   * read-only.
+   * Checks to see if the exception indicates that the current connection is read-only.
    *
    * @param ex
    * @return
@@ -815,8 +813,7 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
   }
 
   /**
-   * Optional callback that can be used to initialize the Worker right before the
-   * benchmark
+   * Optional callback that can be used to initialize the Worker right before the benchmark
    * execution begins
    */
   protected void initialize() {
@@ -824,10 +821,8 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
   }
 
   /**
-   * Set up the session by running a set of statements before benchmark execution
-   * begins. The path
-   * of the file where a set of statements defined should be added in
-   * &lt;sessionsetupfile&gt;
+   * Set up the session by running a set of statements before benchmark execution begins. The path
+   * of the file where a set of statements defined should be added in &lt;sessionsetupfile&gt;
    * &lt;/sessionsetupfile&gt;
    */
   protected void setupSession() {
@@ -854,11 +849,11 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
   /**
    * Invoke a single transaction for the given TransactionType
    *
-   * @param conn    TODO
+   * @param conn TODO
    * @param txnType TODO
    * @return TODO
    * @throws UserAbortException TODO
-   * @throws SQLException       TODO
+   * @throws SQLException TODO
    */
   protected abstract TransactionStatus executeWork(Connection conn, TransactionType txnType)
       throws UserAbortException, SQLException;
