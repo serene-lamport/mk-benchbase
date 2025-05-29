@@ -198,7 +198,7 @@ public class WorkloadConfiguration {
       boolean serial,
       boolean timed,
       int active_terminals,
-      Phase.Arrival arrival) {
+      Phase.Arrival arrival, boolean randomize) {
     phases.add(
         new Phase(
             benchmarkName,
@@ -213,7 +213,7 @@ public class WorkloadConfiguration {
             serial,
             timed,
             active_terminals,
-            arrival));
+            arrival, randomize));
   }
 
   /**

@@ -45,6 +45,7 @@ public class Phase {
   private final List<Integer> counts;
   private final int activeTerminals;
   private int nextSerial;
+  public final boolean randomize_order;
 
   Phase(
       String benchmarkName,
@@ -59,7 +60,7 @@ public class Phase {
       boolean serial,
       boolean timed,
       int activeTerminals,
-      Arrival a) {
+      Arrival a, boolean randomize) {
     this.benchmarkName = benchmarkName;
     this.id = id;
     this.time = t;
@@ -76,6 +77,7 @@ public class Phase {
     this.nextSerial = 1;
     this.activeTerminals = activeTerminals;
     this.arrival = a;
+    this.randomize_order = randomize;
   }
 
   public boolean isRateLimited() {
