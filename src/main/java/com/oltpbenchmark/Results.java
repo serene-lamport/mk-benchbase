@@ -40,6 +40,7 @@ public final class Results {
   private final Histogram<TransactionType> error = new Histogram<>(false);
   private final Histogram<TransactionType> retryDifferent = new Histogram<>(false);
   private final Map<TransactionType, Histogram<String>> abortMessages = new HashMap<>();
+  private final List<Integer> workerTimes;
 
   public Results(
       State state,
@@ -47,12 +48,13 @@ public final class Results {
       long elapsedNanoseconds,
       int measuredRequests,
       DistributionStatistics distributionStatistics,
-      final List<LatencyRecord.Sample> latencySamples) {
+      final List<LatencyRecord.Sample> latencySamples, List<Integer> workerTimes) {
     this.startTimestampMs = startTimestampMs;
     this.nanoseconds = elapsedNanoseconds;
     this.measuredRequests = measuredRequests;
     this.distributionStatistics = distributionStatistics;
     this.state = state;
+    this.workerTimes = workerTimes;
 
     if (distributionStatistics == null) {
       this.latencySamples = null;
@@ -96,6 +98,10 @@ public final class Results {
 
   public Map<TransactionType, Histogram<String>> getAbortMessages() {
     return abortMessages;
+  }
+
+  public List<Integer> getWorkerTimes() {
+    return workerTimes;
   }
 
   public double requestsPerSecondThroughput() {

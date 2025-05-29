@@ -794,6 +794,12 @@ public class DBWorkload {
         rw.writeResults(windowSize, ps, t);
       }
     }
+
+    String workerTimesFile = baseFileName + ".stream_times.json";
+    try (PrintStream ps = new PrintStream(FileUtil.joinPath(outputDirectory, workerTimesFile))) {
+      rw.writeStreamTimes(ps);
+    }
+
   }
 
   private static void runCreator(BenchmarkModule bench) throws SQLException, IOException {
@@ -825,6 +831,7 @@ public class DBWorkload {
     Results r = ThreadBench.runRateLimitedBenchmark(workers, workConfs, monitorInfo);
     LOG.info(SINGLE_LINE);
     LOG.info("Rate limited reqs/s: {}", r);
+    LOG.info("Total time: {}s", r.getNanoseconds() / 1000000000);
     return r;
   }
 
