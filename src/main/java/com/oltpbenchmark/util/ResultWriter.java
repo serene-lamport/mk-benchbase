@@ -225,6 +225,6 @@ public class ResultWriter {
     String s = JSONUtil.toJSONString(results.getWorkerTimes());
     ps.print(s);
     ps.print('\n');
-}
+  }
 
 }
