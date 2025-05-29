@@ -38,7 +38,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
-import java.util.ArrayList; 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
@@ -46,8 +46,7 @@ import org.slf4j.LoggerFactory;
 
 public abstract class Worker<T extends BenchmarkModule> implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(Worker.class);
-  private static final Logger ABORT_LOG =
-      LoggerFactory.getLogger("com.oltpbenchmark.api.ABORT_LOG");
+  private static final Logger ABORT_LOG = LoggerFactory.getLogger("com.oltpbenchmark.api.ABORT_LOG");
 
   private WorkloadState workloadState;
   private LatencyRecord latencies;
@@ -213,7 +212,7 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
 
     Phase curPhase = null;
     List<Integer> workloadQueries = null;
-    int workloadIdx = 0; 
+    int workloadIdx = 0;
 
     while (true) {
 
@@ -245,7 +244,6 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
         continue;
       }
 
-
       if (prePhase.isWorkloadRun()) {
 
         // Starting new phase of workload run! set everything up in this thread...
@@ -260,46 +258,53 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
           workloadQueries = new ArrayList<>(totalCount);
 
           for (int j = 0; j < counts.size(); ++j) {
-              int c = counts.get(j);
+            int c = counts.get(j);
 
-              for ( ; c > 0; --c) {
-                  workloadQueries.add(j + 1);
-              }
+            for (; c > 0; --c) {
+              workloadQueries.add(j + 1);
+            }
           }
 
-          // "rng" is threadlocal and fixed-seed, so would have the same results in each worker.
-          // add the worker index so workers get different orders, and use this to seed a new local RNG
+          // "rng" is threadlocal and fixed-seed, so would have the same results in each
+          // worker.
+          // add the worker index so workers get different orders, and use this to seed a
+          // new local RNG
           Random r = new Random(rng().nextInt() * this.workerIdx);
           for (int i = 0; i < workloadQueries.size(); ++i) {
-              int j = r.nextInt(i, workloadQueries.size());
+            int j = r.nextInt(i, workloadQueries.size());
 
-              int temp = workloadQueries.get(j);
-              workloadQueries.set(j, workloadQueries.get(i));
-              workloadQueries.set(i, temp);
+            int temp = workloadQueries.get(j);
+            workloadQueries.set(j, workloadQueries.get(i));
+            workloadQueries.set(i, temp);
           }
 
-          LOG.info("Worker " + this.workerIdx + " query order: " + workloadQueries);
-      }
+          // LOG.info("Worker " + this.workerIdx + " query order: " + workloadQueries);
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("Worker " + this.workerIdx + " query order: " + workloadQueries);
+          }
 
-      // Continue the workload run
-      if (workloadIdx >= workloadQueries.size()) {
+        }
+
+        // Continue the workload run
+        if (workloadIdx >= workloadQueries.size()) {
           // Workload run is complete!
 
-          // Signal this worker is done with the workload. Wait for everyone else to finish too.
+          // Signal this worker is done with the workload. Wait for everyone else to
+          // finish too.
           workloadState.workloadPhaseDone(curPhase);
 
           // Go back to start of loop -- no work to do
           continue;
-      } else if (workloadState.startWork()) {
+        } else if (workloadState.startWork()) {
           // Do the next query in the already-chosen order
           pieceOfWork = new SubmittedProcedure(workloadQueries.get(workloadIdx));
           ++workloadIdx;
-      } else {
-          // I think this is only possible if the system is shutting down (e.g. CTRL+C during the run)
+        } else {
+          // I think this is only possible if the system is shutting down (e.g. CTRL+C
+          // during the run)
           // Should be the same as if fetchWork doesn't have work (returns null)
           pieceOfWork = null;
-      }
-
+        }
 
       } else {
         // Grab some work and update the state, in case it changed while we
@@ -307,7 +312,6 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
         pieceOfWork = workloadState.fetchWork();
 
       }
-
 
       prePhase = workloadState.getCurrentPhase();
       if (prePhase == null) {
@@ -323,14 +327,14 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
           LOG.warn("preState is {}? will continue...", preState);
           continue;
         }
-        default -> {}
-          // Do nothing
+        default -> {
+        }
+        // Do nothing
       }
 
       // PART 3: Execute work
 
-      TransactionType transactionType =
-          getTransactionType(pieceOfWork, prePhase, preState, workloadState);
+      TransactionType transactionType = getTransactionType(pieceOfWork, prePhase, preState, workloadState);
 
       if (!transactionType.equals(TransactionType.INVALID)) {
 
@@ -377,9 +381,11 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
             if (postPhase == null) {
               // Need a null check on postPhase since current phase being null is used in
               // WorkloadState
-              // and ThreadBench as the indication that the benchmark is over. However, there's a
+              // and ThreadBench as the indication that the benchmark is over. However,
+              // there's a
               // race
-              // condition with postState not being changed from MEASURE to DONE yet, so we entered
+              // condition with postState not being changed from MEASURE to DONE yet, so we
+              // entered
               // the
               // switch. In this scenario, just break from the switch.
               break;
@@ -460,10 +466,11 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
   }
 
   /**
-   * Called in a loop in the thread to exercise the system under test. Each implementing worker
+   * Called in a loop in the thread to exercise the system under test. Each
+   * implementing worker
    * should return the TransactionType handle that was executed.
    *
-   * @param databaseType TODO
+   * @param databaseType    TODO
    * @param transactionType TODO
    */
   protected final void doWork(DatabaseType databaseType, TransactionType transactionType) {
@@ -552,7 +559,8 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
 
           // if the connection is closed, we can't rollback
           if (!isConnectionErrorException && SQLUtil.isConnectionOK(conn)) {
-            // if the error is that we're attempting a write transaction to a read-only secondary,
+            // if the error is that we're attempting a write transaction to a read-only
+            // secondary,
             // then we can't rollback anyways, so don't bother trying
             if (conn.isReadOnly()) {
               // in that case, we should close the connection and possibly try again
@@ -702,17 +710,17 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
         }
       }
     } catch (SQLException ex) {
-      String msg =
-          String.format(
-              "Unexpected SQLException in '%s' when executing '%s' on [%s]",
-              this, transactionType, databaseType.name());
+      String msg = String.format(
+          "Unexpected SQLException in '%s' when executing '%s' on [%s]",
+          this, transactionType, databaseType.name());
 
       throw new RuntimeException(msg, ex);
     }
   }
 
   /**
-   * Checks to see if the exception indicates that the current connection is read-only.
+   * Checks to see if the exception indicates that the current connection is
+   * read-only.
    *
    * @param ex
    * @return
@@ -794,7 +802,8 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
   }
 
   /**
-   * Optional callback that can be used to initialize the Worker right before the benchmark
+   * Optional callback that can be used to initialize the Worker right before the
+   * benchmark
    * execution begins
    */
   protected void initialize() {
@@ -802,8 +811,10 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
   }
 
   /**
-   * Set up the session by running a set of statements before benchmark execution begins. The path
-   * of the file where a set of statements defined should be added in &lt;sessionsetupfile&gt;
+   * Set up the session by running a set of statements before benchmark execution
+   * begins. The path
+   * of the file where a set of statements defined should be added in
+   * &lt;sessionsetupfile&gt;
    * &lt;/sessionsetupfile&gt;
    */
   protected void setupSession() {
@@ -830,11 +841,11 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
   /**
    * Invoke a single transaction for the given TransactionType
    *
-   * @param conn TODO
+   * @param conn    TODO
    * @param txnType TODO
    * @return TODO
    * @throws UserAbortException TODO
-   * @throws SQLException TODO
+   * @throws SQLException       TODO
    */
   protected abstract TransactionStatus executeWork(Connection conn, TransactionType txnType)
       throws UserAbortException, SQLException;
