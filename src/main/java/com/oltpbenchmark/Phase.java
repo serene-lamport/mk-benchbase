@@ -241,6 +241,7 @@ public class Phase {
       }
       if (getCounts() != null) {
         inner.add("[Counts=" + getCounts() + "]");
+        inner.add("[RandomizeOrder=" + randomize_order + "]");
       }
 
       inner.add("[ActiveWorkers=" + getActiveTerminals() + "]");

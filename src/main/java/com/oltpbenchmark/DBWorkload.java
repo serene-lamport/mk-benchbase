@@ -440,6 +440,7 @@ public class DBWorkload {
         List<Integer> counts = null;
 
         if (weight_strings != null) {
+          weights = new ArrayList<>();
           double totalWeight = 0;
 
           for (String weightString : weight_strings) {
@@ -764,11 +765,12 @@ public class DBWorkload {
 
     int windowSize = Integer.parseInt(argsLine.getOptionValue("s", "5"));
 
-    String rawFileName = baseFileName + ".raw.csv";
-    try (PrintStream ps = new PrintStream(FileUtil.joinPath(outputDirectory, rawFileName))) {
-      LOG.info("Output Raw data into file: {}", rawFileName);
-      rw.writeRaw(activeTXTypes, ps);
-    }
+    LOG.info("IMPORTANT: Skipping raw output for now.");
+    // String rawFileName = baseFileName + ".raw.csv";
+    // try (PrintStream ps = new PrintStream(FileUtil.joinPath(outputDirectory, rawFileName))) {
+    //   LOG.info("Output Raw data into file: {}", rawFileName);
+    //   rw.writeRaw(activeTXTypes, ps);
+    // }
 
     String sampleFileName = baseFileName + ".samples.csv";
     try (PrintStream ps = new PrintStream(FileUtil.joinPath(outputDirectory, sampleFileName))) {

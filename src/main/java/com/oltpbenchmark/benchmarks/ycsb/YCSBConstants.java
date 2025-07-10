@@ -34,8 +34,8 @@ public abstract class YCSBConstants {
 
   public static final int MAX_SCAN = 1000;
 
-  public static final int MIN_SEQSCAN = 50;
-  public static final int MAX_SEQSCAN = 100;
+  public static final int MIN_SEQSCAN = 40;
+  public static final int MAX_SEQSCAN = 60;
 
   public static final String TABLE_NAME = "usertable";
 }

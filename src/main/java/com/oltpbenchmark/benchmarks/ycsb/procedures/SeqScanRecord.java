@@ -21,7 +21,6 @@ import static com.oltpbenchmark.benchmarks.ycsb.YCSBConstants.TABLE_NAME;
 
 import com.oltpbenchmark.api.Procedure;
 import com.oltpbenchmark.api.SQLStmt;
-import com.oltpbenchmark.benchmarks.ycsb.YCSBConstants;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -29,7 +28,8 @@ import java.sql.SQLException;
 
 public class SeqScanRecord extends Procedure {
   public final SQLStmt readStmt =
-      new SQLStmt("SELECT * FROM " + TABLE_NAME + " WHERE SEQSCAN_KEY BETWEEN ? AND ?;");
+      new SQLStmt(
+          "SELECT AVG(SEQSCAN_KEY) FROM " + TABLE_NAME + " WHERE SEQSCAN_KEY BETWEEN ? AND ?;");
 
   // FIXME: The value in ysqb is a byteiterator
   public void run(Connection conn, int keyname, int scanLength, String[] results)
@@ -38,13 +38,19 @@ public class SeqScanRecord extends Procedure {
       stmt.setInt(1, keyname);
       stmt.setInt(2, keyname + scanLength - 1);
 
-      try (ResultSet r = stmt.executeQuery()) {
-        while (r.next()) {
-          for (int i = 0; i < YCSBConstants.NUM_FIELDS; i++) {
-            results[i] = r.getString(i + 2);
-          }
-        }
+      ResultSet r = stmt.executeQuery();
+
+      while (r.next()) {
+        results[0] = String.valueOf(r.getDouble(1));
       }
+
+      // try (ResultSet r = stmt.executeQuery()) {
+      //   while (r.next()) {
+      //     for (int i = 0; i < YCSBConstants.NUM_FIELDS; i++) {
+      //       results[i] = r.getString(i + 2);
+      //     }
+      //   }
+      // }
     }
   }
 }

@@ -23,6 +23,7 @@ import com.oltpbenchmark.api.TransactionType;
 import com.oltpbenchmark.api.Worker;
 import com.oltpbenchmark.benchmarks.ycsb.procedures.*;
 import com.oltpbenchmark.distributions.CounterGenerator;
+import com.oltpbenchmark.distributions.ScrambledZipfianGenerator;
 import com.oltpbenchmark.distributions.UniformGenerator;
 import com.oltpbenchmark.distributions.ZipfianGenerator;
 import com.oltpbenchmark.types.TransactionStatus;
@@ -39,9 +40,13 @@ import java.util.ArrayList;
 class YCSBWorker extends Worker<YCSBBenchmark> {
 
   private final ZipfianGenerator readRecord;
+  private final ScrambledZipfianGenerator scrambledReadRecord;
+  private final UniformGenerator uniformReadRecord;
+  // private final ZipfianGenerator hardcodedRandStartingPointZipfian;
   private static CounterGenerator insertRecord;
   private final UniformGenerator randScan;
-  private final UniformGenerator seqScanGenerator;
+  // private final ZipfianGenerator randScanZipfianGenerator;
+  private final UniformGenerator seqScanLengthGenerator;
 
   private final char[] data;
   private final String[] params = new String[YCSBConstants.NUM_FIELDS];
@@ -61,10 +66,19 @@ class YCSBWorker extends Worker<YCSBBenchmark> {
     this.readRecord =
         new ZipfianGenerator(
             rng(), init_record_count, benchmarkModule.skewFactor); // pool for read keys
+
+    this.uniformReadRecord = new UniformGenerator(0, init_record_count - 1);
     this.randScan = new UniformGenerator(1, YCSBConstants.MAX_SCAN);
-    this.seqScanGenerator =
+    this.seqScanLengthGenerator =
         new UniformGenerator(
             YCSBConstants.MIN_SEQSCAN, YCSBConstants.MAX_SEQSCAN); // pool for scan keys
+    // this.randScanZipfianGenerator =
+    //     new ZipfianGenerator(rng(), YCSBConstants.MAX_SCAN, benchmarkModule.skewFactor);
+
+    // this.hardcodedRandStartingPointZipfian = new ZipfianGenerator(rng(), 9, 0.75);
+
+    this.scrambledReadRecord =
+        new ScrambledZipfianGenerator(0, init_record_count - 1, benchmarkModule.skewFactor);
 
     synchronized (YCSBWorker.class) {
       // We must know where to start inserting
@@ -121,13 +135,29 @@ class YCSBWorker extends Worker<YCSBBenchmark> {
   }
 
   private void readRecord(Connection conn) throws SQLException {
-    int keyname = readRecord.nextInt();
+    // int keyname = readRecord.nextInt();
+    // int keyname = uniformReadRecord.nextInt();
+    int keyname = scrambledReadRecord.nextInt();
     this.procReadRecord.run(conn, keyname, this.results);
   }
 
   private void seqScanRecord(Connection conn) throws SQLException {
-    int scanLength = seqScanGenerator.nextInt();
-    int keyname = readRecord.nextInt();
+    int scanLength = seqScanLengthGenerator.nextInt();
+    // int keyname = readRecord.nextInt();
+
+    // Scan start point is chosen uniformly, not Zipfian
+    int keyname = randScan.nextInt();
+
+    // zipfian starting point
+    // int keyname = randScanZipfianGenerator.nextInt();
+
+    // Choose a starting point from one of the following hardcoded ones:
+    // int startPoints[] = {1, 10, 20, 30, 40, 50, 60, 70, 80};
+
+    // int keyname = hardcodedRandStartingPointZipfian.nextInt() % startPoints.length;
+
+    // keyname = startPoints[keyname];
+
     this.procSeqScanRecord.run(conn, keyname, scanLength, this.results);
   }
 
