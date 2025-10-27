@@ -121,7 +121,7 @@ jobs:
         benchmark: [ 'chbenchmark', 'epinions', 'hyadapt', 'noop', 'otmetrics', 'resourcestresser', 'seats', 'sibench', 'smallbank', 'tatp', 'templated', 'tpcc', 'twitter', 'voter', 'wikipedia', 'ycsb' ]
     steps:
       - name: Download artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: benchbase-sqlite
 
@@ -204,7 +204,7 @@ jobs:
           - 3306:3306
     steps:
       - name: Download artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: benchbase-mariadb
 
@@ -285,7 +285,7 @@ jobs:
           - 3306:3306
     steps:
       - name: Download artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: benchbase-mysql
 
@@ -391,7 +391,7 @@ jobs:
           --health-start-period 5s
     steps:
       - name: Download artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: benchbase-oracle
 
@@ -466,7 +466,7 @@ jobs:
       # Note: we download just the docker-compose scripts/configs rather than the
       # whole source code repo for better testing.
       - name: Download artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: docker-compose-postgres
 
@@ -482,7 +482,7 @@ jobs:
           ./docker/postgres-latest/up.sh --quiet-pull postgres
 
       - name: Download artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: benchbase-postgres
 
@@ -568,7 +568,7 @@ jobs:
           - 26257:26257
     steps:
       - name: Download artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: benchbase-cockroachdb
 
@@ -645,7 +645,7 @@ jobs:
           - 1433:1433
     steps:
       - name: Download artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: benchbase-sqlserver
 
